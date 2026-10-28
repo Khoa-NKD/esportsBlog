@@ -1,16 +1,18 @@
 import { GameId, SUPPORTED_GAMES } from '../../types/game';
-import { Radio, Flame } from 'lucide-react';
+import { Radio, Flame, Database } from 'lucide-react';
 
 interface NavbarProps {
   selectedGame: GameId;
   onSelectGame: (game: GameId) => void;
   liveMatchesCount: number;
+  supabaseConnected?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   selectedGame,
   onSelectGame,
   liveMatchesCount,
+  supabaseConnected = false,
 }) => {
   return (
     <header style={{
@@ -121,6 +123,21 @@ export const Navbar: React.FC<NavbarProps> = ({
           }}>
             <Radio size={14} />
             <span>STOMP WS Online</span>
+          </div>
+
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            fontSize: '0.78rem',
+            color: supabaseConnected ? '#38bdf8' : 'var(--text-muted)',
+            background: supabaseConnected ? 'rgba(56, 189, 248, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+            padding: '4px 10px',
+            borderRadius: 6,
+            border: supabaseConnected ? '1px solid rgba(56, 189, 248, 0.25)' : '1px solid var(--border-color)',
+          }}>
+            <Database size={14} />
+            <span>Supabase: {supabaseConnected ? 'Connected' : 'Connecting...'}</span>
           </div>
         </div>
       </div>

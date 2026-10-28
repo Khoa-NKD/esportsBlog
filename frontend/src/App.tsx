@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GameId } from './types/game';
 import { Match } from './types/match';
 import { MOCK_MATCHES, MOCK_PREDICTIONS } from './api/mockData';
@@ -7,11 +7,29 @@ import { LiveTicker } from './components/match/LiveTicker';
 import { MatchCard } from './components/match/MatchCard';
 import { PredictionModal } from './components/prediction/PredictionModal';
 import { Sparkles, Filter, ShieldCheck } from 'lucide-react';
+import { supabase } from './utils/supabase';
 
 export const App: React.FC = () => {
   const [selectedGame, setSelectedGame] = useState<GameId>('ALL');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'LIVE' | 'UPCOMING' | 'FINISHED'>('ALL');
   const [activeModalMatch, setActiveModalMatch] = useState<Match | null>(null);
+  const [supabaseConnected, setSupabaseConnected] = useState<boolean>(false);
+
+  // Supabase live connection verification
+  useEffect(() => {
+    async function checkSupabase() {
+      try {
+        const { error } = await supabase.from('todos').select();
+        // If error is null or returns table-not-found (42P01 / PGRST204), client reached Supabase successfully
+        if (!error || error.code === '42P01' || error.code === 'PGRST204' || error.code === 'PGRST200') {
+          setSupabaseConnected(true);
+        }
+      } catch (err) {
+        console.warn('Supabase initialization check:', err);
+      }
+    }
+    checkSupabase();
+  }, []);
 
   // Filter matches by game and status
   const filteredMatches = MOCK_MATCHES.filter((m) => {
@@ -29,6 +47,7 @@ export const App: React.FC = () => {
         selectedGame={selectedGame}
         onSelectGame={setSelectedGame}
         liveMatchesCount={liveMatches.length}
+        supabaseConnected={supabaseConnected}
       />
 
       {/* Real-time Ticker */}
