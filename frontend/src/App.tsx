@@ -7,6 +7,7 @@ import { SubscriptionPlan, PaymentTransaction } from './types/plan';
 import { MOCK_MATCHES, MOCK_PREDICTIONS } from './api/mockData';
 import { fetchArticles, FALLBACK_ARTICLES } from './services/articleService';
 import { getStoredUser, setStoredUser, logout } from './services/authService';
+import { SUBSCRIPTION_PLANS } from './services/subscriptionService';
 
 // Components
 import { Navbar, AppView } from './components/common/Navbar';
@@ -33,6 +34,7 @@ export const App: React.FC = () => {
   const [activeArticle, setActiveArticle] = useState<Article | null>(null);
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<SubscriptionPlan | null>(null);
+  const [pendingUpgradePlan, setPendingUpgradePlan] = useState<SubscriptionPlan | null>(null);
 
   // App data & Auth
   const [user, setUser] = useState<UserProfile | null>(getStoredUser());
@@ -303,7 +305,22 @@ export const App: React.FC = () => {
         {currentView === 'PRICING' && (
           <PricingSection
             user={user}
-            onSelectPlan={(plan) => setSelectedCheckoutPlan(plan)}
+            onSelectPlan={(plan) => {
+              if (plan.id === 'FREE') {
+                if (!user) {
+                  setShowAuthModal(true);
+                }
+                return;
+              }
+              if (!user) {
+                // Must authenticate first!
+                setPendingUpgradePlan(plan);
+                setShowAuthModal(true);
+                triggerToast(`Vui lòng đăng nhập hoặc tạo tài khoản để kích hoạt gói ${plan.name}!`);
+                return;
+              }
+              setSelectedCheckoutPlan(plan);
+            }}
           />
         )}
 
@@ -357,18 +374,42 @@ export const App: React.FC = () => {
           article={activeArticle}
           user={user}
           onClose={() => setActiveArticle(null)}
-          onUpgradeClick={() => setCurrentView('PRICING')}
-          onLoginClick={() => setShowAuthModal(true)}
+          onUpgradeClick={() => {
+            setActiveArticle(null);
+            if (!user) {
+              const vipPlan = SUBSCRIPTION_PLANS.find((p) => p.id === 'VIP') || SUBSCRIPTION_PLANS[1];
+              setPendingUpgradePlan(vipPlan);
+              setShowAuthModal(true);
+              triggerToast('Vui lòng đăng nhập hoặc tạo tài khoản để kích hoạt gói VIP!');
+            } else {
+              setCurrentView('PRICING');
+            }
+          }}
+          onLoginClick={() => {
+            setActiveArticle(null);
+            setShowAuthModal(true);
+          }}
         />
       )}
 
       {/* MODAL 3: Auth Modal (Login / Register / Demo Roles) */}
       <AuthModal
         isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
+        pendingPlan={pendingUpgradePlan}
+        onClose={() => {
+          setShowAuthModal(false);
+          setPendingUpgradePlan(null);
+        }}
         onSuccess={(loggedUser) => {
           setUser(loggedUser);
-          triggerToast(`Chào mừng trở lại, ${loggedUser.fullName}! (${loggedUser.role})`);
+          setShowAuthModal(false);
+          if (pendingUpgradePlan) {
+            setSelectedCheckoutPlan(pendingUpgradePlan);
+            setPendingUpgradePlan(null);
+            triggerToast(`Đăng nhập thành công! Đang chuyển đến thanh toán cho ${loggedUser.email}...`);
+          } else {
+            triggerToast(`Chào mừng trở lại, ${loggedUser.fullName}! (${loggedUser.role})`);
+          }
         }}
       />
 
@@ -377,9 +418,13 @@ export const App: React.FC = () => {
         <CheckoutModal
           plan={selectedCheckoutPlan}
           user={user}
-          onClose={() => setSelectedCheckoutPlan(null)}
+          onClose={() => {
+            setSelectedCheckoutPlan(null);
+            setPendingUpgradePlan(null);
+          }}
           onPaymentSuccess={handlePaymentSuccess}
           onOpenLogin={() => {
+            setPendingUpgradePlan(selectedCheckoutPlan);
             setSelectedCheckoutPlan(null);
             setShowAuthModal(true);
           }}

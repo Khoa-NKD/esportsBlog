@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SubscriptionPlan, PaymentMethod, PaymentTransaction } from '../../types/plan';
 import { UserProfile, SubscriptionTier } from '../../types/auth';
 import { processPayment } from '../../services/subscriptionService';
-import { X, QrCode, Smartphone, CreditCard, ShieldCheck, CheckCircle2, Clock, Copy, ArrowRight } from 'lucide-react';
+import { X, QrCode, Smartphone, CreditCard, ShieldCheck, CheckCircle2, Clock, Copy, ArrowRight, Lock } from 'lucide-react';
 
 interface CheckoutModalProps {
   plan: SubscriptionPlan | null;
@@ -48,11 +48,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   };
 
   const handleSimulatePayment = async () => {
+    if (!user) {
+      onOpenLogin();
+      return;
+    }
     setProcessing(true);
-    const userEmail = user?.email || 'guest_checkout@esportspulse.vn';
     const res = await processPayment({
-      userId: user?.id,
-      userEmail,
+      userId: user.id,
+      userEmail: user.email,
       planId: plan.id,
       amount,
       paymentMethod: method,
@@ -106,10 +109,77 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           <X size={18} />
         </button>
 
-        {!receipt ? (
+        {/* AUTH GUARD: If user is not logged in, block payment completely */}
+        {!user ? (
+          <div style={{ textAlign: 'center', padding: '24px 12px' }}>
+            <div style={{
+              width: 64,
+              height: 64,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(239, 68, 68, 0.15))',
+              border: '2px solid rgba(245, 158, 11, 0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 18px',
+              color: '#fbbf24',
+              boxShadow: '0 0 25px rgba(245, 158, 11, 0.3)',
+            }}>
+              <Lock size={30} />
+            </div>
+
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              color: '#fbbf24',
+              fontSize: '0.82rem',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              marginBottom: 8,
+            }}>
+              <ShieldCheck size={16} />
+              <span>YÊU CẦU XÁC THỰC TÀI KHOẢN</span>
+            </div>
+
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', marginBottom: 12 }}>
+              Bạn Cần Đăng Nhập Để Nâng Cấp Gói
+            </h2>
+
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', maxWidth: 480, margin: '0 auto 24px', lineHeight: 1.6 }}>
+              Để kích hoạt và bảo lưu quyền lợi gói <strong>{plan.name}</strong> ({amount.toLocaleString('vi-VN')} đ/tháng), bạn cần có tài khoản thành viên trên hệ thống. Khách vãng lai chưa đăng nhập không thể thực hiện giao dịch thanh toán.
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 14 }}>
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn-outline"
+                style={{ padding: '10px 22px' }}
+              >
+                Để Sau
+              </button>
+              <button
+                type="button"
+                onClick={onOpenLogin}
+                className="btn-primary"
+                style={{
+                  background: 'linear-gradient(135deg, #00f2fe 0%, #0284c7 100%)',
+                  padding: '10px 26px',
+                  fontWeight: 800,
+                  fontSize: '0.92rem',
+                }}
+              >
+                <span>Đăng Nhập / Đăng Ký Ngay</span>
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+        ) : !receipt ? (
           <>
             {/* Header */}
-            <div style={{ marginBottom: 20 }}>
+            <div style={{ marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--accent-cyan)', fontSize: '0.8rem', fontWeight: 800 }}>
                 <ShieldCheck size={16} />
                 <span>CỔNG THANH TOÁN AN TOÀN ESPORTSPULSE</span>
@@ -122,41 +192,49 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </p>
             </div>
 
-            {/* If user is not logged in, show notice */}
-            {!user && (
-              <div style={{
-                background: 'rgba(245, 158, 11, 0.1)',
-                border: '1px solid rgba(245, 158, 11, 0.3)',
-                padding: '10px 14px',
-                borderRadius: 8,
-                fontSize: '0.82rem',
-                color: '#fbbf24',
-                marginBottom: 16,
+            {/* Verified User Identity Banner */}
+            <div style={{
+              background: 'rgba(16, 185, 129, 0.08)',
+              border: '1px solid rgba(16, 185, 129, 0.25)',
+              padding: '10px 14px',
+              borderRadius: 8,
+              fontSize: '0.82rem',
+              marginBottom: 16,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 10,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <img
+                  src={user.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100'}
+                  alt=""
+                  style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid #10b981' }}
+                />
+                <div>
+                  <div style={{ fontWeight: 800, color: '#fff' }}>
+                    Tài khoản thụ hưởng: {user.fullName}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#10b981' }}>
+                    {user.email} • Gói hiện tại: {user.subscriptionTier}
+                  </div>
+                </div>
+              </div>
+              <span style={{
+                fontSize: '0.72rem',
+                fontWeight: 800,
+                background: 'rgba(16, 185, 129, 0.2)',
+                color: '#34d399',
+                padding: '3px 8px',
+                borderRadius: 4,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 10,
+                gap: 4,
               }}>
-                <span>Bạn đang thanh toán với tư cách Khách. Đăng nhập để tự động lưu quyền lợi vào tài khoản của bạn.</span>
-                <button
-                  type="button"
-                  onClick={onOpenLogin}
-                  style={{
-                    background: '#f59e0b',
-                    color: '#000',
-                    border: 'none',
-                    fontWeight: 700,
-                    fontSize: '0.75rem',
-                    padding: '4px 10px',
-                    borderRadius: 4,
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  Đăng nhập
-                </button>
-              </div>
-            )}
+                <CheckCircle2 size={12} />
+                <span>Đã Xác Thực</span>
+              </span>
+            </div>
 
             {/* Payment Method Selector */}
             <div style={{ marginBottom: 20 }}>
@@ -381,6 +459,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
                 <span style={{ color: 'var(--text-muted)' }}>Mã hóa đơn:</span>
                 <strong style={{ color: 'var(--accent-cyan)' }}>{receipt.transactionCode}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+                <span style={{ color: 'var(--text-muted)' }}>Tài khoản kích hoạt:</span>
+                <strong style={{ color: '#fff' }}>{user?.email || receipt.userEmail}</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
                 <span style={{ color: 'var(--text-muted)' }}>Gói dịch vụ:</span>

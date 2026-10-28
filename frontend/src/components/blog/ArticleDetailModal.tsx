@@ -261,7 +261,15 @@ export const ArticleDetailModal: React.FC<ArticleDetailModalProps> = ({
                 </h3>
 
                 <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', maxWidth: 520, margin: '0 auto 20px', lineHeight: 1.6 }}>
-                  Bạn đang ở gói <strong>Hội Viên Cơ Bản</strong>. Hãy nâng cấp lên gói <strong>Pro Gamer</strong> hoặc <strong>VIP Analyst</strong> để mở khóa toàn bộ bài viết nhận định, bảng phân tích cấm chọn và tín hiệu AI nhận định kèo sớm.
+                  {user ? (
+                    <>
+                      Bạn đang ở gói <strong>{user.subscriptionTier === 'FREE' ? 'Hội Viên Cơ Bản' : user.subscriptionTier}</strong>. Hãy nâng cấp lên gói <strong>Pro Gamer</strong> hoặc <strong>VIP Analyst</strong> để mở khóa toàn bộ bài viết nhận định, bảng phân tích cấm chọn và tín hiệu AI nhận định kèo sớm.
+                    </>
+                  ) : (
+                    <>
+                      Bạn chưa đăng nhập vào hệ thống. Vui lòng đăng nhập hoặc tạo tài khoản thành viên để nâng cấp lên gói <strong>Pro Gamer</strong> hoặc <strong>VIP Analyst</strong> và mở khóa phân tích chuyên sâu.
+                    </>
+                  )}
                 </p>
 
                 <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -276,7 +284,7 @@ export const ArticleDetailModal: React.FC<ArticleDetailModalProps> = ({
                     }}
                   >
                     <Crown size={18} />
-                    <span>Nâng Cấp Gói Ngay (Từ 99.000đ/tháng)</span>
+                    <span>{user ? 'Nâng Cấp Gói Ngay (Từ 99.000đ/tháng)' : 'Đăng Ký & Nâng Cấp VIP (Từ 99.000đ/tháng)'}</span>
                     <ArrowRight size={16} />
                   </button>
 
@@ -286,7 +294,7 @@ export const ArticleDetailModal: React.FC<ArticleDetailModalProps> = ({
                       className="btn-outline"
                       style={{ padding: '10px 20px' }}
                     >
-                      <span>Đã có tài khoản VIP? Đăng nhập</span>
+                      <span>Đã có tài khoản? Đăng nhập</span>
                     </button>
                   )}
                 </div>

@@ -236,11 +236,11 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ user, onSelectPl
                 </button>
               ) : plan.id === 'FREE' ? (
                 <button
-                  disabled
+                  onClick={() => onSelectPlan(plan)}
                   className="btn-outline"
                   style={{ width: '100%', justifyContent: 'center' }}
                 >
-                  Đăng Ký Miễn Phí
+                  {user ? '✓ Đang Dùng Gói Cơ Bản' : 'Đăng Ký Tài Khoản Miễn Phí'}
                 </button>
               ) : (
                 <button
@@ -258,7 +258,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ user, onSelectPl
                   }}
                 >
                   <Sparkles size={18} />
-                  <span>Nâng Cấp {plan.name}</span>
+                  <span>{user ? `Nâng Cấp ${plan.name}` : `Đăng Ký & Nâng Cấp ${plan.name}`}</span>
                 </button>
               )}
             </div>

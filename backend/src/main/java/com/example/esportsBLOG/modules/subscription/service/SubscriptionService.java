@@ -83,6 +83,12 @@ public class SubscriptionService {
                 user.setSubscriptionExpiresAt(LocalDateTime.now().plusMonths(1));
                 userRepository.save(user);
             });
+        } else if (req.userEmail() != null) {
+            userRepository.findByEmail(req.userEmail()).ifPresent(user -> {
+                user.setSubscriptionTier(req.planTier());
+                user.setSubscriptionExpiresAt(LocalDateTime.now().plusMonths(1));
+                userRepository.save(user);
+            });
         }
 
         return toDto(saved);

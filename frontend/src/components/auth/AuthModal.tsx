@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Lock, Mail, User, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { X, Lock, Mail, User, Eye, EyeOff, ShieldCheck, Crown } from 'lucide-react';
 import { UserProfile } from '../../types/auth';
+import { SubscriptionPlan } from '../../types/plan';
 import { loginWithSupabase, registerWithSupabase } from '../../services/authService';
 import { EsportsLogo } from '../common/EsportsLogo';
 
@@ -8,9 +9,10 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (user: UserProfile) => void;
+  pendingPlan?: SubscriptionPlan | null;
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess, pendingPlan }) => {
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -139,6 +141,43 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
               : 'Truy cập dữ liệu phân tích cấm chọn và tỷ số trận đấu thời gian thực'}
           </p>
         </div>
+
+        {/* Pending Plan Callout */}
+        {pendingPlan && (
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.08))',
+            border: '1px solid rgba(245, 158, 11, 0.4)',
+            borderRadius: 10,
+            padding: '12px 14px',
+            marginBottom: 18,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            boxShadow: '0 0 20px rgba(245, 158, 11, 0.2)',
+          }}>
+            <div style={{
+              width: 36,
+              height: 36,
+              borderRadius: 8,
+              background: 'rgba(245, 158, 11, 0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fbbf24',
+              flexShrink: 0,
+            }}>
+              <Crown size={20} />
+            </div>
+            <div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#fbbf24' }}>
+                Đăng nhập để nâng cấp: {pendingPlan.name}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                {pendingPlan.priceMonthly.toLocaleString('vi-VN')} đ/tháng • Tự động mở thanh toán sau khi đăng nhập
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Segmented Tab Controls */}
         <div
@@ -366,7 +405,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
               boxShadow: '0 0 20px rgba(0, 242, 254, 0.4)',
             }}
           >
-            {loading ? 'Đang Xác Thực...' : isRegister ? 'Tạo Tài Khoản Ngay' : 'Đăng Nhập Vào Hệ Thống'}
+            {loading
+              ? 'Đang Xác Thực...'
+              : pendingPlan
+              ? isRegister
+                ? `Tạo Tài Khoản & Nâng Cấp ${pendingPlan.name}`
+                : `Đăng Nhập & Nâng Cấp ${pendingPlan.name}`
+              : isRegister
+              ? 'Tạo Tài Khoản Ngay'
+              : 'Đăng Nhập Vào Hệ Thống'}
           </button>
         </form>
 
