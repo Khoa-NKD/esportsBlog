@@ -52,9 +52,16 @@ public class PostController {
     }
 
     @DeleteMapping("/{id}")
-    public ApiResponse<Void> deletePost(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deletePost(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-User-Role", required = false, defaultValue = "USER") String userRole
+    ) {
+        if (!"ADMIN".equalsIgnoreCase(userRole)) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.error("Truy cập bị từ chối: Chỉ quản trị viên (ADMIN) mới có quyền xóa bài viết."));
+        }
         postService.deletePost(id);
-        return ApiResponse.ok("Xóa bài viết thành công", null);
+        return ResponseEntity.ok(ApiResponse.ok("Xóa bài viết thành công", null));
     }
 
     private SubscriptionTier parseTier(String tier) {

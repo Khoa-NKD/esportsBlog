@@ -4,7 +4,7 @@ import { UserProfile, UserRole, SubscriptionTier } from '../../types/auth';
 import { PaymentTransaction } from '../../types/plan';
 import { fetchAllPayments } from '../../services/subscriptionService';
 import { createArticle, deleteArticle } from '../../services/articleService';
-import { DollarSign, FileText, TrendingUp, Plus, Trash2, Crown, Sparkles, ArrowLeft, X } from 'lucide-react';
+import { DollarSign, FileText, TrendingUp, Plus, Trash2, Crown, Sparkles, ArrowLeft, X, Lock, ShieldAlert } from 'lucide-react';
 
 interface AdminDashboardProps {
   articles: Article[];
@@ -147,6 +147,81 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
     );
   };
+
+  // AUTHORIZATION GUARD: Strict RBAC check for ADMIN role
+  if (!currentUser || currentUser.role !== 'ADMIN') {
+    return (
+      <div style={{ maxWidth: 640, margin: '80px auto', padding: '0 20px', width: '100%' }}>
+        <div className="glass-panel" style={{
+          padding: '48px 32px',
+          textAlign: 'center',
+          border: '1px solid rgba(239, 68, 68, 0.4)',
+          background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(15, 23, 42, 0.95) 100%)',
+          borderRadius: 16,
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(239, 68, 68, 0.2)',
+        }}>
+          <div style={{
+            width: 64,
+            height: 64,
+            borderRadius: '50%',
+            background: 'rgba(239, 68, 68, 0.15)',
+            border: '2px solid rgba(239, 68, 68, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 20px',
+            color: '#ef4444',
+          }}>
+            <Lock size={32} />
+          </div>
+
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            color: '#ef4444',
+            fontSize: '0.85rem',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            marginBottom: 8,
+          }}>
+            <ShieldAlert size={16} />
+            <span>403 Forbidden • Yêu Cầu Quyền Quản Trị</span>
+          </div>
+
+          <h2 style={{
+            fontFamily: 'var(--font-heading)',
+            fontSize: '1.8rem',
+            fontWeight: 900,
+            color: '#fff',
+            marginBottom: 12,
+          }}>
+            TRUY CẬP BỊ TỪ CHỐI
+          </h2>
+
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', lineHeight: 1.6, marginBottom: 24 }}>
+            Khu vực Quản trị (Admin Dashboard) chỉ dành riêng cho người dùng có vai trò <strong>ADMIN</strong>.
+            Tài khoản hiện tại của bạn: <strong>{currentUser ? currentUser.email : 'Khách vãng lai'}</strong> (Vai trò: {currentUser ? currentUser.role : 'GUEST'}).
+          </p>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
+            <button
+              onClick={onBackToApp}
+              className="btn-primary"
+              style={{
+                background: 'linear-gradient(135deg, #38bdf8, #0284c7)',
+                padding: '10px 24px',
+                fontSize: '0.9rem',
+              }}
+            >
+              <span>Trở Về Trang Chủ</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 1300, margin: '0 auto', padding: '24px 20px', width: '100%' }}>

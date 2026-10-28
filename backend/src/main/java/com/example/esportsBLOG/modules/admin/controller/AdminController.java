@@ -8,6 +8,8 @@ import com.example.esportsBLOG.modules.subscription.dto.PaymentTransactionDto;
 import com.example.esportsBLOG.modules.subscription.service.SubscriptionService;
 import com.example.esportsBLOG.repository.UserRepository;
 import com.example.esportsBLOG.service.PostService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,7 +34,14 @@ public class AdminController {
     }
 
     @GetMapping("/stats")
-    public ApiResponse<AdminDashboardStats> getStats() {
+    public ResponseEntity<ApiResponse<AdminDashboardStats>> getStats(
+            @RequestHeader(value = "X-User-Role", required = false, defaultValue = "USER") String userRole
+    ) {
+        if (!"ADMIN".equalsIgnoreCase(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.error("Truy cập bị từ chối: Yêu cầu quyền ADMIN."));
+        }
+
         long totalRevenue = subscriptionService.getTotalRevenue() != null ? subscriptionService.getTotalRevenue() : 0L;
         long totalTransactions = subscriptionService.getSuccessfulPaymentsCount();
         long totalArticles = postService.countTotalArticles();
@@ -43,7 +52,7 @@ public class AdminController {
 
         AdminDashboardStats stats = new AdminDashboardStats(
                 totalRevenue,
-                totalRevenue, // Current monthly estimation
+                totalRevenue,
                 totalArticles,
                 premiumArticles,
                 totalUsers,
@@ -52,16 +61,28 @@ public class AdminController {
                 totalTransactions
         );
 
-        return ApiResponse.ok(stats);
+        return ResponseEntity.ok(ApiResponse.ok(stats));
     }
 
     @GetMapping("/transactions")
-    public ApiResponse<List<PaymentTransactionDto>> getAllTransactions() {
-        return ApiResponse.ok(subscriptionService.getAllTransactions());
+    public ResponseEntity<ApiResponse<List<PaymentTransactionDto>>> getAllTransactions(
+            @RequestHeader(value = "X-User-Role", required = false, defaultValue = "USER") String userRole
+    ) {
+        if (!"ADMIN".equalsIgnoreCase(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.error("Truy cập bị từ chối: Yêu cầu quyền ADMIN."));
+        }
+        return ResponseEntity.ok(ApiResponse.ok(subscriptionService.getAllTransactions()));
     }
 
     @GetMapping("/users")
-    public ApiResponse<List<User>> getAllUsers() {
-        return ApiResponse.ok(userRepository.findAll());
+    public ResponseEntity<ApiResponse<List<User>>> getAllUsers(
+            @RequestHeader(value = "X-User-Role", required = false, defaultValue = "USER") String userRole
+    ) {
+        if (!"ADMIN".equalsIgnoreCase(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.error("Truy cập bị từ chối: Yêu cầu quyền ADMIN."));
+        }
+        return ResponseEntity.ok(ApiResponse.ok(userRepository.findAll()));
     }
 }

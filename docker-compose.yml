@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: esports-pulse-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DB_HOST=aws-0-ap-southeast-1.pooler.supabase.com
+      - DB_PORT=5432
+      - DB_NAME=postgres
+      - DB_USER=${DB_USER:-postgres.njnbskhjkjpubbkgzgaq}
+      - DB_PASSWORD=${DB_PASSWORD:-}
+      - CORS_ALLOWED_ORIGINS=http://localhost,http://localhost:5173,http://localhost:80
+    networks:
+      - esports-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: esports-pulse-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    environment:
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL:-https://njnbskhjkjpubbkgzgaq.supabase.co}
+      - VITE_SUPABASE_PUBLISHABLE_KEY=${VITE_SUPABASE_PUBLISHABLE_KEY:-sb_publishable_iRiZKIXVhs8Ksmxy0rGWKg_kX9TQDf1}
+    networks:
+      - esports-network
+
+networks:
+  esports-network:
+    driver: bridge
