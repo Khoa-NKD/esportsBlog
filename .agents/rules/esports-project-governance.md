@@ -13,9 +13,10 @@
 | **2. Kiến trúc Hệ thống** | `senior-architect`, `senior-fullstack` | Thiết kế phân tầng sạch (Presentation -> Domain -> Data); chuẩn hóa Monorepo (Spring Boot 4 / Java 21 + Vite React TS); khai báo luồng CoT (Architecture -> Implementation -> Test Vector) trước khi viết code. |
 | **3. Thiết Kế Giao Diện (UI/UX)** | `frontend-design`, `ui-ux-pro-max`, `frontend-patterns` | Thiết kế đậm chất Esports/Gaming (Cyberpunk, Neon Glow, Glassmorphism, HUD stats); tuyệt đối không dùng template SaaS generic nhàm chán; ưu tiên: Accessibility (CRITICAL) -> Touch/Interaction (CRITICAL) -> Performance (HIGH) -> Layout -> Typography (Outfit + Rajdhani). Áp dụng Composition over inheritance và strict types. |
 | **4. AI & Engine Nhận Định** | `senior-prompt-engineer` | Thiết kế prompt có cấu trúc (JSON schema), Chain-of-Thought phân tích kèo/tỷ lệ thắng, RAG tối ưu hóa dữ liệu lịch sử đối đầu. |
-| **5. Đánh Giá & Kiểm Định Code** | `code-reviewer`, `web-design-guidelines` | Quét lỗ hổng bảo mật, kiểm tra không rò rỉ secret/credentials, rà soát type safety, audit UX theo chuẩn Web Interface Guidelines (`file:line` format). |
-| **6. Kiểm Thử Trực Quan & E2E** | `control-ui-e2e` | Đảm bảo luồng giao diện mượt mà, kiểm tra độ trễ WebSocket real-time, kiểm tra giao diện trước và sau khi thay đổi (visual proof). |
-| **7. Phát Triển Agent & Skill Mới** | `agent-development`, `skill-creator` | Chuẩn hóa subagent với YAML frontmatter đầy đủ `<example>`, quy trình eval & benchmark chặt chẽ. |
+| **5. Cơ Sở Dữ Liệu & Cloud (Postgres/Supabase)** | `supabase`, `supabase-postgres-best-practices` | **BẮT BUỘC dùng trước khi tạo/sửa bảng, viết migration, query SQL, cấu hình RLS và indexes.** Tối ưu query performance (Priority 1), kết nối pooling, Row-Level Security, chuẩn hóa schema cho bảng trận đấu, kèo, tỷ số. |
+| **6. Đánh Giá & Kiểm Định Code** | `code-reviewer`, `web-design-guidelines` | Quét lỗ hổng bảo mật, kiểm tra không rò rỉ secret/credentials, rà soát type safety, audit UX theo chuẩn Web Interface Guidelines (`file:line` format). |
+| **7. Kiểm Thử Trực Quan & E2E** | `control-ui-e2e` | Đảm bảo luồng giao diện mượt mà, kiểm tra độ trễ WebSocket real-time, kiểm tra giao diện trước và sau khi thay đổi (visual proof). |
+| **8. Phát Triển Agent & Skill Mới** | `agent-development`, `skill-creator` | Chuẩn hóa subagent với YAML frontmatter đầy đủ `<example>`, quy trình eval & benchmark chặt chẽ. |
 
 ---
 
