@@ -1,7 +1,8 @@
 import React from 'react';
 import { GameId, SUPPORTED_GAMES } from '../../types/game';
 import { UserProfile } from '../../types/auth';
-import { Radio, Flame, Database, Crown, User, LogOut, ShieldAlert, BookOpen, Trophy } from 'lucide-react';
+import { Crown, User, LogOut, ShieldAlert, BookOpen, Trophy, Flame } from 'lucide-react';
+import { EsportsLogo } from './EsportsLogo';
 
 export type AppView = 'MATCHES' | 'BLOG_FREE' | 'BLOG_VIP' | 'PRICING' | 'ADMIN';
 
@@ -11,7 +12,6 @@ interface NavbarProps {
   selectedGame: GameId;
   onSelectGame: (game: GameId) => void;
   liveMatchesCount: number;
-  supabaseConnected?: boolean;
   user: UserProfile | null;
   onOpenAuth: () => void;
   onLogout: () => void;
@@ -23,7 +23,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   selectedGame,
   onSelectGame,
   liveMatchesCount,
-  supabaseConnected = false,
   user,
   onOpenAuth,
   onLogout,
@@ -48,40 +47,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         flexWrap: 'wrap',
         gap: 16,
       }}>
-        {/* Brand */}
+        {/* Brand with custom vector logo */}
         <div
           onClick={() => onSelectView('MATCHES')}
-          style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+          style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
         >
-          <div style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            background: 'linear-gradient(135deg, #00f2fe, #7928ca)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 0 15px rgba(0, 242, 254, 0.4)',
-          }}>
-            <Flame size={24} color="#fff" />
-          </div>
-          <div>
-            <div style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: '1.4rem',
-              fontWeight: 800,
-              letterSpacing: '0.04em',
-              background: 'linear-gradient(90deg, #fff, #38bdf8)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              lineHeight: 1.1,
-            }}>
-              ESPORTS<span style={{ color: '#00f2fe' }}>PULSE</span>
-            </div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              Real-time Analytics & AI Predictions
-            </div>
-          </div>
+          <EsportsLogo size="md" showText={true} showSubtitle={true} animated={true} />
         </div>
 
         {/* Main Navigation Views */}
@@ -338,31 +309,25 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 5,
+            gap: 6,
             fontSize: '0.72rem',
+            fontWeight: 700,
             color: '#10b981',
             background: 'rgba(16, 185, 129, 0.1)',
-            padding: '3px 8px',
-            borderRadius: 6,
-            border: '1px solid rgba(16, 185, 129, 0.2)',
+            padding: '4px 10px',
+            borderRadius: 20,
+            border: '1px solid rgba(16, 185, 129, 0.3)',
+            boxShadow: '0 0 10px rgba(16, 185, 129, 0.2)',
           }}>
-            <Radio size={12} />
-            <span>STOMP WS</span>
-          </div>
-
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 5,
-            fontSize: '0.72rem',
-            color: supabaseConnected ? '#38bdf8' : 'var(--text-muted)',
-            background: supabaseConnected ? 'rgba(56, 189, 248, 0.1)' : 'rgba(255, 255, 255, 0.05)',
-            padding: '3px 8px',
-            borderRadius: 6,
-            border: supabaseConnected ? '1px solid rgba(56, 189, 248, 0.25)' : '1px solid var(--border-color)',
-          }}>
-            <Database size={12} />
-            <span>Supabase RLS</span>
+            <span style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              backgroundColor: '#10b981',
+              boxShadow: '0 0 6px #10b981',
+              display: 'inline-block',
+            }} />
+            <span>DỮ LIỆU REAL-TIME</span>
           </div>
         </div>
       </div>

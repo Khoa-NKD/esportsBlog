@@ -395,7 +395,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {activeTab === 'METRICS' && (
         <div className="glass-panel" style={{ padding: 20 }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: 16 }}>
-            Nhật Ký Thanh Toán Real-Time (Supabase Database)
+            Nhật Ký Giao Dịch & Thanh Toán Real-Time
           </h3>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>

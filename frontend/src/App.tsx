@@ -7,7 +7,6 @@ import { SubscriptionPlan, PaymentTransaction } from './types/plan';
 import { MOCK_MATCHES, MOCK_PREDICTIONS } from './api/mockData';
 import { fetchArticles, FALLBACK_ARTICLES } from './services/articleService';
 import { getStoredUser, setStoredUser, logout } from './services/authService';
-import { supabase } from './utils/supabase';
 
 // Components
 import { Navbar, AppView } from './components/common/Navbar';
@@ -38,7 +37,6 @@ export const App: React.FC = () => {
   // App data & Auth
   const [user, setUser] = useState<UserProfile | null>(getStoredUser());
   const [articles, setArticles] = useState<Article[]>(FALLBACK_ARTICLES);
-  const [supabaseConnected, setSupabaseConnected] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Show temporary toast
@@ -47,25 +45,15 @@ export const App: React.FC = () => {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // 1. Check Supabase connection and load remote posts
+  // 1. Load articles on mount
   useEffect(() => {
-    async function initSupabaseAndData() {
-      try {
-        const { error } = await supabase.from('todos').select();
-        if (!error || error.code === '42P01' || error.code === 'PGRST204' || error.code === 'PGRST200') {
-          setSupabaseConnected(true);
-        }
-      } catch (err) {
-        console.warn('Supabase ping check:', err);
-      }
-
-      // Load articles from Supabase
+    async function loadInitialData() {
       const remotePosts = await fetchArticles();
       if (remotePosts && remotePosts.length > 0) {
         setArticles(remotePosts);
       }
     }
-    initSupabaseAndData();
+    loadInitialData();
   }, []);
 
   // Filter matches by game and status
@@ -126,7 +114,6 @@ export const App: React.FC = () => {
         selectedGame={selectedGame}
         onSelectGame={setSelectedGame}
         liveMatchesCount={liveMatches.length}
-        supabaseConnected={supabaseConnected}
         user={user}
         onOpenAuth={() => setShowAuthModal(true)}
         onLogout={handleLogout}
@@ -327,7 +314,7 @@ export const App: React.FC = () => {
             onRefreshArticles={async () => {
               const fresh = await fetchArticles();
               setArticles(fresh);
-              triggerToast('Đã làm mới danh sách bài viết từ Supabase.');
+              triggerToast('Đã đồng bộ danh sách bài viết mới nhất.');
             }}
             onBackToApp={() => setCurrentView('MATCHES')}
             currentUser={user}
@@ -341,17 +328,16 @@ export const App: React.FC = () => {
         borderTop: '1px solid var(--border-color)',
         padding: '24px 20px',
         marginTop: 40,
-        textAlign: 'center',
         fontSize: '0.82rem',
         color: 'var(--text-muted)',
       }}>
-        <div style={{ maxWidth: 1300, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ maxWidth: 1300, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <ShieldCheck size={16} color="var(--accent-cyan)" />
-            <span>EsportsPulse • Nền tảng phân tích thể thao điện tử chuẩn xác</span>
+            <span style={{ color: '#fff', fontWeight: 600 }}>EsportsPulse • Nền tảng phân tích thể thao điện tử chuẩn xác</span>
           </div>
-          <div>
-            Backend: Spring Boot 4 • Database: Supabase PostgreSQL (RLS Active) • Frontend: Vite React TS
+          <div style={{ color: 'var(--text-secondary)' }}>
+            © 2026 EsportsPulse Media Network. Toàn bộ bản quyền được bảo lưu. Dữ liệu trận đấu thời gian thực.
           </div>
         </div>
       </footer>
