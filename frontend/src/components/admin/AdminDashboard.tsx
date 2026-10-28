@@ -4,7 +4,7 @@ import { UserProfile, UserRole, SubscriptionTier } from '../../types/auth';
 import { PaymentTransaction } from '../../types/plan';
 import { fetchAllPayments } from '../../services/subscriptionService';
 import { createArticle, deleteArticle } from '../../services/articleService';
-import { DollarSign, FileText, TrendingUp, Plus, Trash2, Crown, Sparkles, ArrowLeft, X, Lock, ShieldAlert } from 'lucide-react';
+import { DollarSign, FileText, TrendingUp, Plus, Trash2, Crown, Sparkles, ArrowLeft, X, Lock, ShieldAlert, CheckCircle2, PenTool } from 'lucide-react';
 
 interface AdminDashboardProps {
   articles: Article[];
@@ -19,9 +19,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onBackToApp,
   currentUser,
 }) => {
-  const [activeTab, setActiveTab] = useState<'METRICS' | 'POSTS' | 'USERS' | 'PAYMENTS'>('METRICS');
+  const isAdmin = currentUser?.role === 'ADMIN';
+  const isAuthorized = currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'ANALYST');
+
+  const [activeTab, setActiveTab] = useState<'METRICS' | 'POSTS' | 'USERS' | 'PAYMENTS'>(isAdmin ? 'METRICS' : 'POSTS');
   const [payments, setPayments] = useState<PaymentTransaction[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+  // Sync default tab if role changes
+  useEffect(() => {
+    if (isAdmin) {
+      setActiveTab('METRICS');
+    } else {
+      setActiveTab('POSTS');
+    }
+  }, [isAdmin]);
 
   // Form states for creating new article
   const [newTitle, setNewTitle] = useState('');
@@ -113,11 +125,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       content: newContent,
       coverImage: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80',
       gameTag: newGameTag,
-      authorName: currentUser?.fullName || 'Admin Ban Biên Tập',
+      authorName: currentUser?.fullName || 'Ban Biên Tập EsportsPulse',
       isPremium: newIsPremium,
       status: 'PUBLISHED',
       readTime: '5 phút',
-    });
+    }, currentUser?.role || 'ANALYST');
 
     setIsSubmitting(false);
     if (ok) {
@@ -130,8 +142,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeletePost = async (id: string) => {
+    if (!isAdmin) {
+      alert('Chỉ tài khoản Quản trị viên (ADMIN) mới có quyền xóa bài viết khỏi hệ thống!');
+      return;
+    }
     if (confirm('Bạn có chắc chắn muốn xóa bài viết này không?')) {
-      await deleteArticle(id);
+      await deleteArticle(id, currentUser?.role || 'ADMIN');
       onRefreshArticles();
     }
   };
@@ -148,8 +164,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     );
   };
 
-  // AUTHORIZATION GUARD: Strict RBAC check for ADMIN role
-  if (!currentUser || currentUser.role !== 'ADMIN') {
+  // AUTHORIZATION GUARD: Strict RBAC check for ADMIN or ANALYST (Author)
+  if (!isAuthorized) {
     return (
       <div style={{ maxWidth: 640, margin: '80px auto', padding: '0 20px', width: '100%' }}>
         <div className="glass-panel" style={{
@@ -187,7 +203,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             marginBottom: 8,
           }}>
             <ShieldAlert size={16} />
-            <span>403 Forbidden • Yêu Cầu Quyền Quản Trị</span>
+            <span>403 Forbidden • Yêu Cầu Quyền Quản Trị Hoặc Tác Giả</span>
           </div>
 
           <h2 style={{
@@ -201,7 +217,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </h2>
 
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', lineHeight: 1.6, marginBottom: 24 }}>
-            Khu vực Quản trị (Admin Dashboard) chỉ dành riêng cho người dùng có vai trò <strong>ADMIN</strong>.
+            Khu vực Quản trị & Studio Biên tập chỉ dành riêng cho người dùng có vai trò <strong>ADMIN</strong> hoặc <strong>ANALYST (Tác giả)</strong>.
             Tài khoản hiện tại của bạn: <strong>{currentUser ? currentUser.email : 'Khách vãng lai'}</strong> (Vai trò: {currentUser ? currentUser.role : 'GUEST'}).
           </p>
 
@@ -247,25 +263,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </button>
           <div>
             <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.8rem', fontWeight: 900, lineHeight: 1.1 }}>
-              BẢNG QUẢN TRỊ ADMIN (DASHBOARD)
+              {isAdmin ? 'BẢNG QUẢN TRỊ ADMIN (DASHBOARD)' : 'STUDIO TÁC GIẢ & BAN BIÊN TẬP (AUTHOR STUDIO)'}
             </h1>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              Theo dõi doanh thu, hội viên trả phí và quản lý nội dung độc quyền
+              {isAdmin
+                ? 'Theo dõi doanh thu, hội viên trả phí và quản trị toàn diện hệ thống'
+                : 'Sáng tạo nội dung, xuất bản bài nhận định chuyên sâu và phân tích kèo thi đấu'}
             </p>
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{
-            background: 'rgba(239, 68, 68, 0.2)',
-            color: '#f87171',
-            border: '1px solid rgba(239, 68, 68, 0.4)',
+            background: isAdmin ? 'rgba(239, 68, 68, 0.2)' : 'rgba(56, 189, 248, 0.2)',
+            color: isAdmin ? '#f87171' : '#38bdf8',
+            border: isAdmin ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(56, 189, 248, 0.4)',
             fontSize: '0.8rem',
             fontWeight: 800,
             padding: '4px 12px',
             borderRadius: 6,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
           }}>
-            Quyền: {currentUser?.role || 'ADMIN'}
+            {isAdmin ? '👑 Quyền: ADMIN (Toàn Quyền)' : '✍️ Quyền: TÁC GIẢ (ANALYST)'}
           </span>
         </div>
       </div>
@@ -277,88 +298,176 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         gap: 18,
         marginBottom: 30,
       }}>
-        {/* Total Revenue */}
-        <div className="glass-panel" style={{ padding: '22px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}>TỔNG DOANH THU</span>
-            <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(16, 185, 129, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <DollarSign size={20} color="#10b981" />
+        {isAdmin ? (
+          <>
+            {/* Total Revenue (Admin Only) */}
+            <div className="glass-panel" style={{ padding: '22px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}>TỔNG DOANH THU</span>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(16, 185, 129, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <DollarSign size={20} color="#10b981" />
+                </div>
+              </div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-heading)', color: '#10b981' }}>
+                {totalRevenue.toLocaleString('vi-VN')} đ
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#10b981', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <TrendingUp size={12} />
+                <span>+24.5% so với tháng trước</span>
+              </div>
             </div>
-          </div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-heading)', color: '#10b981' }}>
-            {totalRevenue.toLocaleString('vi-VN')} đ
-          </div>
-          <div style={{ fontSize: '0.75rem', color: '#10b981', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-            <TrendingUp size={12} />
-            <span>+24.5% so với tháng trước</span>
-          </div>
-        </div>
 
-        {/* Paying Members */}
-        <div className="glass-panel" style={{ padding: '22px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}>HỘI VIÊN PRO / VIP</span>
-            <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(245, 158, 11, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Crown size={20} color="#fbbf24" />
+            {/* Paying Members (Admin Only) */}
+            <div className="glass-panel" style={{ padding: '22px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}>HỘI VIÊN PRO / VIP</span>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(245, 158, 11, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Crown size={20} color="#fbbf24" />
+                </div>
+              </div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-heading)', color: '#fbbf24' }}>
+                {totalSubscribers} / {managedUsers.length}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 4 }}>
+                Tỷ lệ chuyển đổi: <strong style={{ color: '#fff' }}>{conversionRate}%</strong>
+              </div>
             </div>
-          </div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-heading)', color: '#fbbf24' }}>
-            {totalSubscribers} / {managedUsers.length}
-          </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 4 }}>
-            Tỷ lệ chuyển đổi: <strong style={{ color: '#fff' }}>{conversionRate}%</strong>
-          </div>
-        </div>
 
-        {/* Articles Count */}
-        <div className="glass-panel" style={{ padding: '22px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}>TỔNG BÀI VIẾT</span>
-            <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(56, 189, 248, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FileText size={20} color="var(--accent-cyan)" />
+            {/* Articles Count */}
+            <div className="glass-panel" style={{ padding: '22px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}>TỔNG BÀI VIẾT</span>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(56, 189, 248, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <FileText size={20} color="var(--accent-cyan)" />
+                </div>
+              </div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-heading)', color: 'var(--accent-cyan)' }}>
+                {totalArticles}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 4 }}>
+                {premiumArticles} bài VIP / {totalArticles - premiumArticles} bài Free
+              </div>
             </div>
-          </div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-heading)', color: 'var(--accent-cyan)' }}>
-            {totalArticles}
-          </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 4 }}>
-            {premiumArticles} bài VIP / {totalArticles - premiumArticles} bài Free
-          </div>
-        </div>
 
-        {/* Active Transactions */}
-        <div className="glass-panel" style={{ padding: '22px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}>GIAO DỊCH GẦN ĐÂY</span>
-            <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(168, 85, 247, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Sparkles size={20} color="var(--accent-purple)" />
+            {/* Active Transactions (Admin Only) */}
+            <div className="glass-panel" style={{ padding: '22px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}>GIAO DỊCH GẦN ĐÂY</span>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(168, 85, 247, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Sparkles size={20} color="var(--accent-purple)" />
+                </div>
+              </div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-heading)', color: 'var(--accent-purple)' }}>
+                {payments.length}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#10b981', marginTop: 4 }}>
+                100% hoàn tất tự động
+              </div>
             </div>
-          </div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-heading)', color: 'var(--accent-purple)' }}>
-            {payments.length}
-          </div>
-          <div style={{ fontSize: '0.75rem', color: '#10b981', marginTop: 4 }}>
-            100% hoàn tất tự động
-          </div>
-        </div>
+          </>
+        ) : (
+          <>
+            {/* Author KPIs - No financial disclosure */}
+            <div className="glass-panel" style={{ padding: '22px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}>TỔNG BÀI VIẾT ĐÃ ĐĂNG</span>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(56, 189, 248, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <FileText size={20} color="var(--accent-cyan)" />
+                </div>
+              </div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-heading)', color: 'var(--accent-cyan)' }}>
+                {totalArticles}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 4 }}>
+                Đã phân phối trên nền tảng
+              </div>
+            </div>
+
+            <div className="glass-panel" style={{ padding: '22px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}>BÀI PHÂN TÍCH VIP</span>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(245, 158, 11, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Crown size={20} color="#fbbf24" />
+                </div>
+              </div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-heading)', color: '#fbbf24' }}>
+                {premiumArticles} bài
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 4 }}>
+                Dành cho hội viên PRO & VIP
+              </div>
+            </div>
+
+            <div className="glass-panel" style={{ padding: '22px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}>BÀI FREE CỘNG ĐỒNG</span>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(16, 185, 129, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <PenTool size={20} color="#10b981" />
+                </div>
+              </div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-heading)', color: '#10b981' }}>
+                {totalArticles - premiumArticles} bài
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 4 }}>
+                Công khai cho mọi độc giả
+              </div>
+            </div>
+
+            <div className="glass-panel" style={{ padding: '22px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}>QUYỀN BIÊN TẬP</span>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(168, 85, 247, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <CheckCircle2 size={20} color="var(--accent-purple)" />
+                </div>
+              </div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 900, fontFamily: 'var(--font-heading)', color: 'var(--accent-purple)' }}>
+                SẴN SÀNG
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#10b981', marginTop: 4 }}>
+                Quyền xuất bản bài viết tức thì
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Tabs Navigation */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 20, borderBottom: '1px solid var(--border-color)', paddingBottom: 12 }}>
-        <button
-          onClick={() => setActiveTab('METRICS')}
-          style={{
-            background: activeTab === 'METRICS' ? 'rgba(56, 189, 248, 0.2)' : 'transparent',
-            color: activeTab === 'METRICS' ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-            border: activeTab === 'METRICS' ? '1px solid var(--accent-cyan)' : '1px solid transparent',
-            padding: '8px 16px',
-            borderRadius: 8,
-            fontWeight: 700,
-            cursor: 'pointer',
-          }}
-        >
-          Lịch Sử Giao Dịch
-        </button>
+        {isAdmin ? (
+          <button
+            onClick={() => setActiveTab('METRICS')}
+            style={{
+              background: activeTab === 'METRICS' ? 'rgba(56, 189, 248, 0.2)' : 'transparent',
+              color: activeTab === 'METRICS' ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+              border: activeTab === 'METRICS' ? '1px solid var(--accent-cyan)' : '1px solid transparent',
+              padding: '8px 16px',
+              borderRadius: 8,
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            Lịch Sử Giao Dịch
+          </button>
+        ) : (
+          <span
+            title="Chỉ Quản trị viên (ADMIN) mới có quyền truy cập dữ liệu giao dịch"
+            style={{
+              background: 'rgba(255, 255, 255, 0.03)',
+              color: 'var(--text-muted)',
+              border: '1px dashed rgba(255, 255, 255, 0.1)',
+              padding: '8px 16px',
+              borderRadius: 8,
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              cursor: 'not-allowed',
+            }}
+          >
+            <Lock size={14} />
+            <span>Doanh Thu (Admin Only)</span>
+          </span>
+        )}
 
         <button
           onClick={() => setActiveTab('POSTS')}
@@ -375,24 +484,45 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           Quản Lý Bài Đăng ({articles.length})
         </button>
 
-        <button
-          onClick={() => setActiveTab('USERS')}
-          style={{
-            background: activeTab === 'USERS' ? 'rgba(56, 189, 248, 0.2)' : 'transparent',
-            color: activeTab === 'USERS' ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-            border: activeTab === 'USERS' ? '1px solid var(--accent-cyan)' : '1px solid transparent',
-            padding: '8px 16px',
-            borderRadius: 8,
-            fontWeight: 700,
-            cursor: 'pointer',
-          }}
-        >
-          Quản Lý Người Dùng & Gói ({managedUsers.length})
-        </button>
+        {isAdmin ? (
+          <button
+            onClick={() => setActiveTab('USERS')}
+            style={{
+              background: activeTab === 'USERS' ? 'rgba(56, 189, 248, 0.2)' : 'transparent',
+              color: activeTab === 'USERS' ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+              border: activeTab === 'USERS' ? '1px solid var(--accent-cyan)' : '1px solid transparent',
+              padding: '8px 16px',
+              borderRadius: 8,
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            Quản Lý Người Dùng & Gói ({managedUsers.length})
+          </button>
+        ) : (
+          <span
+            title="Chỉ Quản trị viên (ADMIN) mới có quyền quản lý người dùng và thay đổi vai trò"
+            style={{
+              background: 'rgba(255, 255, 255, 0.03)',
+              color: 'var(--text-muted)',
+              border: '1px dashed rgba(255, 255, 255, 0.1)',
+              padding: '8px 16px',
+              borderRadius: 8,
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              cursor: 'not-allowed',
+            }}
+          >
+            <Lock size={14} />
+            <span>Quản Lý User (Admin Only)</span>
+          </span>
+        )}
       </div>
 
-      {/* Tab 1: Transactions Table */}
-      {activeTab === 'METRICS' && (
+      {/* Tab 1: Transactions Table (Admin Only) */}
+      {isAdmin && activeTab === 'METRICS' && (
         <div className="glass-panel" style={{ padding: 20 }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: 16 }}>
             Nhật Ký Giao Dịch & Thanh Toán Real-Time
@@ -506,19 +636,39 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </td>
                     <td style={{ padding: '12px', color: 'var(--text-muted)' }}>{art.viewsCount.toLocaleString()}</td>
                     <td style={{ padding: '12px', textAlign: 'center' }}>
-                      <button
-                        onClick={() => handleDeletePost(art.id)}
-                        style={{
-                          background: 'rgba(239, 68, 68, 0.15)',
-                          border: 'none',
-                          color: '#f87171',
-                          padding: '6px',
-                          borderRadius: 6,
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      {isAdmin ? (
+                        <button
+                          onClick={() => handleDeletePost(art.id)}
+                          title="Xóa bài viết (Chỉ ADMIN)"
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.15)',
+                            border: 'none',
+                            color: '#f87171',
+                            padding: '6px',
+                            borderRadius: 6,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      ) : (
+                        <span
+                          title="Tác giả không có quyền xóa bài. Chỉ Quản trị viên (ADMIN) mới có quyền xóa."
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            padding: '4px 8px',
+                            borderRadius: 6,
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            color: 'var(--text-muted)',
+                            fontSize: '0.75rem',
+                          }}
+                        >
+                          <Lock size={12} />
+                          <span>Admin Only</span>
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -528,8 +678,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       )}
 
-      {/* Tab 3: User Management */}
-      {activeTab === 'USERS' && (
+      {/* Tab 3: User Management (Admin Only) */}
+      {isAdmin && activeTab === 'USERS' && (
         <div className="glass-panel" style={{ padding: 20 }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: 16 }}>
             Quản Lý Hội Viên & Cấp Quyền (User Management)

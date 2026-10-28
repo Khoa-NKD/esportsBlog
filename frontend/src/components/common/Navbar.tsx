@@ -144,7 +144,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>Gói Hội Viên</span>
           </button>
 
-          {user?.role === 'ADMIN' && (
+          {(user?.role === 'ADMIN' || user?.role === 'ANALYST') && (
             <button
               onClick={() => onSelectView('ADMIN')}
               style={{
@@ -162,7 +162,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }}
             >
               <ShieldAlert size={14} />
-              <span>Admin Dashboard</span>
+              <span>{user.role === 'ADMIN' ? 'Admin Dashboard' : 'Studio Tác Giả'}</span>
             </button>
           )}
         </div>

@@ -59,6 +59,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     setErrorMsg(null);
   };
 
+  const handleFillDemoAuthor = () => {
+    setEmail('author@esportspulse.vn');
+    setPassword('123456');
+    setErrorMsg(null);
+  };
+
+  const handleFillDemoMember = () => {
+    setEmail('free@esportspulse.vn');
+    setPassword('123456');
+    setErrorMsg(null);
+  };
+
   return (
     <div
       style={{
@@ -419,33 +431,70 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         <div
           style={{
             marginTop: 20,
-            padding: '8px 12px',
+            padding: '10px 14px',
             borderRadius: 8,
             backgroundColor: 'rgba(255, 255, 255, 0.02)',
             border: '1px dashed rgba(255, 255, 255, 0.1)',
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            flexDirection: 'column',
+            gap: 6,
             fontSize: '0.75rem',
             color: 'var(--text-muted)',
           }}
         >
-          <span>Tài khoản kiểm thử (Local): <strong>admin@esportspulse.vn</strong></span>
-          <button
-            type="button"
-            onClick={handleFillDemoAdmin}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--accent-cyan)',
-              fontWeight: 700,
-              cursor: 'pointer',
-              textDecoration: 'underline',
-              padding: 0,
-            }}
-          >
-            Tự điền
-          </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Kiểm thử phân quyền RBAC (Local Test):</span>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={handleFillDemoAdmin}
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: '#f87171',
+                padding: '3px 8px',
+                borderRadius: 4,
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontSize: '0.72rem',
+              }}
+            >
+              🔑 ADMIN
+            </button>
+            <button
+              type="button"
+              onClick={handleFillDemoAuthor}
+              style={{
+                background: 'rgba(56, 189, 248, 0.1)',
+                border: '1px solid rgba(56, 189, 248, 0.3)',
+                color: '#38bdf8',
+                padding: '3px 8px',
+                borderRadius: 4,
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontSize: '0.72rem',
+              }}
+            >
+              ✍️ TÁC GIẢ (Author)
+            </button>
+            <button
+              type="button"
+              onClick={handleFillDemoMember}
+              style={{
+                background: 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                color: '#34d399',
+                padding: '3px 8px',
+                borderRadius: 4,
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontSize: '0.72rem',
+              }}
+            >
+              👤 USER (Free)
+            </button>
+          </div>
         </div>
       </div>
     </div>

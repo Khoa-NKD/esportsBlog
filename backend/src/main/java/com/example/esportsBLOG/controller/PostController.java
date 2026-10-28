@@ -24,7 +24,14 @@ public class PostController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<PostResponse>> createPost(@Valid @RequestBody CreatePostRequest req) {
+    public ResponseEntity<ApiResponse<PostResponse>> createPost(
+            @Valid @RequestBody CreatePostRequest req,
+            @RequestHeader(value = "X-User-Role", required = false, defaultValue = "USER") String userRole
+    ) {
+        if (!"ADMIN".equalsIgnoreCase(userRole) && !"ANALYST".equalsIgnoreCase(userRole)) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.error("Truy cập bị từ chối: Yêu cầu vai trò Tác giả (ANALYST) hoặc Quản trị viên (ADMIN) để đăng bài viết."));
+        }
         PostResponse created = postService.createPost(req);
         URI location = URI.create("/api/posts/" + created.id());
         return ResponseEntity.created(location).body(ApiResponse.ok("Tạo bài viết thành công", created));

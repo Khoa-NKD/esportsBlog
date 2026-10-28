@@ -14,6 +14,15 @@ export const DEMO_USERS: Record<string, UserProfile> = {
     subscriptionTier: 'VIP',
     createdAt: '2026-01-01T00:00:00Z',
   },
+  author: {
+    id: 'demo-author-id',
+    email: 'author@esportspulse.vn',
+    fullName: 'Hoàng Luân (Author / Analyst)',
+    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80',
+    role: 'ANALYST',
+    subscriptionTier: 'VIP',
+    createdAt: '2026-03-05T00:00:00Z',
+  },
   vip: {
     id: 'demo-vip-id',
     email: 'vip_analyst@esportspulse.vn',
@@ -62,7 +71,7 @@ export const setStoredUser = (user: UserProfile | null) => {
   }
 };
 
-export const loginWithDemo = (type: 'admin' | 'vip' | 'pro' | 'free'): UserProfile => {
+export const loginWithDemo = (type: 'admin' | 'author' | 'vip' | 'pro' | 'free'): UserProfile => {
   const user = DEMO_USERS[type];
   setStoredUser(user);
   return user;
@@ -74,11 +83,17 @@ export const loginWithSupabase = async (email: string, pass: string): Promise<{ 
     if (email.toLowerCase() === 'admin@esportspulse.vn' || email.toLowerCase() === 'admin@gmail.com') {
       return { user: loginWithDemo('admin') };
     }
+    if (email.toLowerCase() === 'author@esportspulse.vn' || email.toLowerCase() === 'analyst@esportspulse.vn') {
+      return { user: loginWithDemo('author') };
+    }
     if (email.toLowerCase() === 'vip@esportspulse.vn') {
       return { user: loginWithDemo('vip') };
     }
     if (email.toLowerCase() === 'pro@esportspulse.vn') {
       return { user: loginWithDemo('pro') };
+    }
+    if (email.toLowerCase() === 'free@esportspulse.vn') {
+      return { user: loginWithDemo('free') };
     }
 
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -88,6 +103,7 @@ export const loginWithSupabase = async (email: string, pass: string): Promise<{ 
 
     if (error) {
       if (email.includes('admin')) return { user: loginWithDemo('admin') };
+      if (email.includes('author') || email.includes('analyst')) return { user: loginWithDemo('author') };
       if (email.includes('vip')) return { user: loginWithDemo('vip') };
       if (email.includes('pro')) return { user: loginWithDemo('pro') };
       return { user: null, error: error.message };

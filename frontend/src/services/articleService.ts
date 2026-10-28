@@ -175,8 +175,42 @@ export const fetchArticles = async (filter?: ArticleFilter, gameTag?: GameId | '
   }
 };
 
-export const createArticle = async (article: Omit<Article, 'id' | 'createdAt' | 'viewsCount'>): Promise<boolean> => {
+export const createArticle = async (
+  article: Omit<Article, 'id' | 'createdAt' | 'viewsCount'>,
+  userRole: string = 'ANALYST'
+): Promise<boolean> => {
   try {
+    // 1. Backend Spring Boot RBAC Check
+    try {
+      const backendRes = await fetch('http://localhost:8080/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Role': userRole,
+        },
+        body: JSON.stringify({
+          title: article.title,
+          slug: article.slug,
+          excerpt: article.excerpt,
+          content: article.content,
+          coverImage: article.coverImage,
+          gameTag: article.gameTag,
+          authorName: article.authorName,
+          isPremium: article.isPremium,
+          status: article.status,
+          readTime: article.readTime,
+        }),
+      });
+      if (backendRes.status === 403) {
+        console.warn('Backend rejected post creation: 403 Forbidden (Insufficient role)');
+        alert('Lỗi 403 Forbidden: Bạn không có quyền tác giả/quản trị để tạo bài viết.');
+        return false;
+      }
+    } catch {
+      // Backend offline, proceed with database
+    }
+
+    // 2. Supabase Insert with RLS
     const { error } = await supabase.from('posts').insert([
       {
         title: article.title,
@@ -198,8 +232,25 @@ export const createArticle = async (article: Omit<Article, 'id' | 'createdAt' | 
   }
 };
 
-export const deleteArticle = async (id: string): Promise<boolean> => {
+export const deleteArticle = async (id: string, userRole: string = 'ADMIN'): Promise<boolean> => {
   try {
+    // 1. Backend Spring Boot RBAC Check
+    try {
+      const backendRes = await fetch(`http://localhost:8080/api/posts/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'X-User-Role': userRole,
+        },
+      });
+      if (backendRes.status === 403) {
+        console.warn('Backend rejected post deletion: 403 Forbidden (Only ADMIN permitted)');
+        alert('Lỗi 403 Forbidden: Chỉ Quản trị viên (ADMIN) mới có quyền xóa bài viết.');
+        return false;
+      }
+    } catch {
+      // Backend offline, proceed with database
+    }
+
     const { error } = await supabase.from('posts').delete().eq('id', id);
     return !error;
   } catch (e) {
